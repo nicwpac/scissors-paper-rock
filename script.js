@@ -1,3 +1,43 @@
+let humanScore = 0;
+let computerScore = 0;
+
+let roundAmount = 0;
+let currentRound = 0;
+
+let playerChoice = "";
+let gameActive = false;
+//#region DOM
+    // Choice Buttons
+const btns = [];
+
+const btnScissors = document.querySelector("#scissors-btn");
+btns.push(btnScissors);
+btnScissors.addEventListener("click", () => selectChoice("Scissors", btnScissors));
+
+const btnPaper = document.querySelector("#paper-btn");
+btns.push(btnPaper);
+btnPaper.addEventListener("click", () => selectChoice("Paper", btnPaper));
+
+const btnRock = document.querySelector("#rock-btn");
+btns.push(btnRock);
+btnRock.addEventListener("click", () => selectChoice("Rock", btnRock));
+
+    // Score
+const playerScoreCounter = document.querySelector("#score-player");
+const computerScoreCounter = document.querySelector("#score-computer");
+
+    // Rounds
+const roundAmountInput = document.querySelector("#round-select-input");
+
+const roundCounter = document.querySelector("#round-counter");
+
+    // Other
+const startGameBtn = document.querySelector("#start-game");
+startGameBtn.addEventListener("click", tryStartGame);
+
+const output = document.querySelector("#output");
+//#endregion
+
 function getComputerChoice() {
     const choice = Math.floor(Math.random() * 3);
     switch (choice) {
@@ -10,25 +50,16 @@ function getComputerChoice() {
     }
 }
 
-function getHumanChoice() {
-    let choice = prompt("Please choose either \"Scissors\", \"Paper\", or \"Rock\".")
-    return choice.charAt(0).toUpperCase() + choice.slice(1);
-}
-
-let humanScore = 0;
-let computerScore = 0;
-
 function playRound(humanChoice, computerChoice, roundNumber) {
-    humanChoice.toLowerCase();
-
-    if (humanChoice === computerChoice) {
-        alert(`Round ${roundNumber + 1}:\nYou chose: ${humanChoice}, Computer chose: ${computerChoice}\nIt's a tie!\nYour Score: ${humanScore}, Computer's Score: ${computerScore}`);
-        return;
-    }
-
+    roundCounter.textContent = `Round: ${currentRound + 1} of ${roundAmount}`;
+    let outputString = "";
     let won = false;
-
-    if (humanChoice === "Scissors") {
+    let tie = false;
+    if (humanChoice === computerChoice) {
+        tie = true;
+        outputString = `Round ${roundNumber + 1}:\nYou chose: ${humanChoice}, Computer chose: ${computerChoice}\nIt's a tie!`;
+    }
+    else if (humanChoice === "Scissors") {
         if (computerChoice === "Paper")
             won = true;
     }
@@ -41,27 +72,84 @@ function playRound(humanChoice, computerChoice, roundNumber) {
             won = true;
     }
 
-    if (won) humanScore++;
-    else computerScore++;
+    if (!tie) {
+        if (won && !tie) humanScore++;
+        else if (!won && !tie) computerScore++;
 
-    alert(`Round ${roundNumber + 1}:\nYou chose: ${humanChoice}, Computer chose: ${computerChoice}\n You ${won ? "win!" : "lose..."} ${won ? humanChoice : computerChoice} beats ${won ? computerChoice : humanChoice}!\nYour Score: ${humanScore}, Computer's Score: ${computerScore}`);
+        outputString = `Round ${roundNumber + 1}:\n` +
+        `You chose: ${humanChoice}, Computer chose: ${computerChoice}\n` +
+        (tie ? `It's a tie!` : (`You ${won ? "win!" : "lose..."} ${won ? humanChoice : computerChoice} ` + 
+        `beats ${won ? computerChoice : humanChoice}!\n`));
+    }
+    
+    playerScoreCounter.textContent = "Your Score: " + humanScore;
+    computerScoreCounter.textContent = "Computer Score: " + computerScore;
+
+    outputPrint(outputString);
+
+    currentRound++;
+    if (currentRound == roundAmount) endGame();
 }
 
-const roundAmount = 5;
+function outputPrint(outputString) {
+    output.textContent = outputString + "\n\n" + output.textContent;
+    console.log("outputPrint()'d! Output text = " + outputString);
+}
 
-function playGame() {
-    for (i = 0; i < roundAmount; i++) {
-        playRound(getHumanChoice(), getComputerChoice(), i);
+function tryStartGame() {
+    console.log("tryStartGame() called!");
+    resetGame();
+    output.textContent = "";
+    roundAmount = roundAmountInput.value;
+    if (roundAmount == 0 || roundAmount === null) {
+        outputPrint("Please select how many rounds you would like to play.");
+        return;
     }
+
+    playerScoreCounter.textContent = "Your Score: 0";
+    computerScoreCounter.textContent = "Computer's Score: 0";
+
+    gameActive = true;
+}
+
+function endGame() {
+    let gameoverText = "";
     if (humanScore == computerScore)
-        alert(`Wow! It's a tie! \nYour Score: ${humanScore}, Computer's Score: ${computerScore}`);
+        gameoverText = `Wow! It's a tie! \nYour Score: ${humanScore}, Computer's Score: ${computerScore}`;
     else if (humanScore > computerScore) {
-        alert(`Congratulations! You win! \nYour Score: ${humanScore}, Computer's Score: ${computerScore}`);
+        gameoverText = `Congratulations! You win! \nYour Score: ${humanScore}, Computer's Score: ${computerScore}`;
     }
     else {
-        alert(`Bummer! You lost... \nYour Score: ${humanScore}, Computer's Score: ${computerScore}`)
+        gameoverText = `Bummer! You lost... \nYour Score: ${humanScore}, Computer's Score: ${computerScore}`;
     }
+
+    outputPrint(gameoverText);
+
+    resetGame();
 }
 
-alert("Starting game...");
-playGame();
+function resetGame() {
+    gameActive = false;
+    currentRound = 0;
+    roundAmount = 0;
+    humanScore = 0;
+    computerScore = 0;
+    resetChoiceBtns();
+}
+
+function selectChoice(choice, btn) {
+    console.log("selectChoice called! gameActive == " + gameActive);
+    console.log("currentRound = " + currentRound + ", roundAmount = " + roundAmount);
+    if (!gameActive) return;
+
+    resetChoiceBtns();
+    btn.style.backgroundColor = "gold";
+    
+    playRound(choice, getComputerChoice(), currentRound);
+}
+
+function resetChoiceBtns() {
+    btns.forEach(btn => {
+        btn.style.backgroundColor = "";
+    });
+}
