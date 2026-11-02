@@ -140,7 +140,10 @@ function resetGame() {
 function selectChoice(choice, btn) {
     console.log("selectChoice called! gameActive == " + gameActive);
     console.log("currentRound = " + currentRound + ", roundAmount = " + roundAmount);
-    if (!gameActive) return;
+    if (!gameActive) {
+        outputPrint("Please select how many rounds you would like to play.");
+        return;
+    }
 
     resetChoiceBtns();
     btn.style.backgroundColor = "gold";
